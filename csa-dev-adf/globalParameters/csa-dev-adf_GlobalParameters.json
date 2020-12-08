@@ -1,0 +1,18 @@
+{
+	"Default_Schema": {
+		"type": "string",
+		"value": "dbo"
+	},
+	"Staging_Schema": {
+		"type": "string",
+		"value": "staging"
+	},
+	"DW_CSA_DBName": {
+		"type": "string",
+		"value": "CSA_PreProd"
+	},
+	"CSA_TransDB_Name": {
+		"type": "string",
+		"value": "ClinicalSafetyAppPreProd"
+	}
+}

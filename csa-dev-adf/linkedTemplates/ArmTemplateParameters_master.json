@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "csa-dev-adf"
+		},
+		"ADLS_csapreprodstorage_accountKey": {
+			"value": ""
+		},
+		"AZRDEVSQL03_connectionString": {
+			"value": ""
+		},
+		"ClinicalSafetyAppDevDB_connectionString": {
+			"value": ""
+		},
+		"ClinicalSafetyAppPreProdDB_connectionString": {
+			"value": ""
+		},
+		"ADLS_csapreprodstorage_properties_typeProperties_url": {
+			"value": "https://csapreprodstorage.dfs.core.windows.net"
+		},
+		"dt-ir-02_properties_typeProperties_linkedInfo_resourceId": {
+			"value": "/subscriptions/f0060c8b-9ae2-4d37-8010-0bd020c184f9/resourcegroups/RG-NAPA-SQL-DEV/providers/Microsoft.DataFactory/factories/DataTeamtest02/integrationruntimes/dt-ir-02"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}

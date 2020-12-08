@@ -1,0 +1,84 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "csa-dev-adf"
+		},
+		"ADLS_csapreprodstorage_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ADLS_csapreprodstorage'"
+		},
+		"AZRDEVSQL03_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AZRDEVSQL03'"
+		},
+		"ClinicalSafetyAppDevDB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ClinicalSafetyAppDevDB'"
+		},
+		"ClinicalSafetyAppPreProdDB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ClinicalSafetyAppPreProdDB'"
+		},
+		"ADLS_csapreprodstorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://csapreprodstorage.dfs.core.windows.net"
+		},
+		"dt-ir-02_properties_typeProperties_linkedInfo_resourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/f0060c8b-9ae2-4d37-8010-0bd020c184f9/resourcegroups/RG-NAPA-SQL-DEV/providers/Microsoft.DataFactory/factories/DataTeamtest02/integrationruntimes/dt-ir-02"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "csa-dev-adf_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"ADLS_csapreprodstorage_accountKey": {
+						"value": "[parameters('ADLS_csapreprodstorage_accountKey')]"
+					},
+					"ClinicalSafetyAppDevDB_connectionString": {
+						"value": "[parameters('ClinicalSafetyAppDevDB_connectionString')]"
+					},
+					"ClinicalSafetyAppPreProdDB_connectionString": {
+						"value": "[parameters('ClinicalSafetyAppPreProdDB_connectionString')]"
+					},
+					"AZRDEVSQL03_connectionString": {
+						"value": "[parameters('AZRDEVSQL03_connectionString')]"
+					},
+					"ADLS_csapreprodstorage_properties_typeProperties_url": {
+						"value": "[parameters('ADLS_csapreprodstorage_properties_typeProperties_url')]"
+					},
+					"dt-ir-02_properties_typeProperties_linkedInfo_resourceId": {
+						"value": "[parameters('dt-ir-02_properties_typeProperties_linkedInfo_resourceId')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
