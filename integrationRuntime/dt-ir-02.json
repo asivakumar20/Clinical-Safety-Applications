@@ -1,0 +1,12 @@
+{
+	"name": "dt-ir-02",
+	"properties": {
+		"type": "SelfHosted",
+		"typeProperties": {
+			"linkedInfo": {
+				"resourceId": "/subscriptions/f0060c8b-9ae2-4d37-8010-0bd020c184f9/resourcegroups/RG-NAPA-SQL-DEV/providers/Microsoft.DataFactory/factories/DataTeamtest02/integrationruntimes/dt-ir-02",
+				"authorizationType": "Rbac"
+			}
+		}
+	}
+}

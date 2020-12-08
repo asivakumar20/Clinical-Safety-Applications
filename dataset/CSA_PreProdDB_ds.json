@@ -1,0 +1,16 @@
+{
+	"name": "CSA_PreProdDB_ds",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ClinicalSafetyAppPreProdDB",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "CSA_UAT_Datasets"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

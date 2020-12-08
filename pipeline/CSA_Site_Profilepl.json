@@ -1,0 +1,131 @@
+{
+	"name": "CSA_Site_Profilepl",
+	"properties": {
+		"activities": [
+			{
+				"name": "DW2CSAuatstorage",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "."
+					},
+					{
+						"name": "Destination",
+						"value": "csapreprodcontainer/Site Profile/@{concat('CSA_Site_Profile_v1_.csv')}"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT [UniqueSiteID],[Account Status_],[Account Name_],[NAPA Region_]\nFROM [CSA_PreProd].[dbo].[vw_CSASiteList]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".csv"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Dev_DataWarehouse_ds",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SiteProfileExcel_dls",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Send Success Email",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "DW2CSAuatstorage",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-28.eastus2.logic.azure.com:443/workflows/a1d375bd030748dcbdf03c792f0936df/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=7tOxYL2UrcSIOVVNm6jcH3M9CEruyX5td8OdrqCK6HE",
+					"method": "POST",
+					"body": {
+						"value": "{\n\"Title\": \"Pipeline Run Finished!!\",\n\"Message\": \"Pipeline Finished Running Successfully!!\",\n\"Color\": \"Green\",\n\"DataFactoryName\": \"@{pipeline().DataFactory}\",\n\"PipelineName\": \"@{pipeline().Pipeline}\",\n\"PipelineRunId\": \"@{pipeline().RunId}\",\n\"PipelineTriggerId\": \"@{pipeline().TriggerId}\",\n\"PipelineTriggerName\": \"@{pipeline().TriggerName}\",\n\"PipelineTriggerTime\": \"@{pipeline().TriggerTime}\",\n\"PipelineTriggerType\": \"@{pipeline().TriggerType}\",\n\"Time\": \"@{utcnow()}\"\n}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Send Failed Email",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "DW2CSAuatstorage",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-28.eastus2.logic.azure.com:443/workflows/a1d375bd030748dcbdf03c792f0936df/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=7tOxYL2UrcSIOVVNm6jcH3M9CEruyX5td8OdrqCK6HE",
+					"method": "POST",
+					"body": {
+						"value": "{\n\"Title\": \"Pipeline Run Failed...\",\n\"Message\": \"@{activity('DW2CSAuatstorage').error.message}\",\n\"Color\": \"Red\",\n\"DataFactoryName\": \"@{pipeline().DataFactory}\",\n\"PipelineName\": \"@{pipeline().Pipeline}\",\n\"PipelineRunId\": \"@{pipeline().RunId}\",\n\"PipelineTriggerId\": \"@{pipeline().TriggerId}\",\n\"PipelineTriggerName\": \"@{pipeline().TriggerName}\",\n\"PipelineTriggerTime\": \"@{pipeline().TriggerTime}\",\n\"PipelineTriggerType\": \"@{pipeline().TriggerType}\",\n\"Time\": \"@{utcnow()}\"\n}",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "CSA_UAT_Pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2020-12-05T00:15:00Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

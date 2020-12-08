@@ -1,0 +1,47 @@
+{
+	"name": "SiteProfileExcel_dls",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLS_csapreprodstorage",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "CSA_UAT_Datasets"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@concat('CSA_Site_Profile_v1_',utcnow(),'.csv')",
+					"type": "Expression"
+				},
+				"fileSystem": "csapreprodcontainer"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "UniqueSiteID",
+				"type": "String"
+			},
+			{
+				"name": "Account Status_",
+				"type": "String"
+			},
+			{
+				"name": "Account Name_",
+				"type": "String"
+			},
+			{
+				"name": "NAPA Region_",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

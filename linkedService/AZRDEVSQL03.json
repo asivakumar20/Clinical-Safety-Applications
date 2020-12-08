@@ -1,0 +1,19 @@
+{
+	"name": "AZRDEVSQL03",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Azure Synapse",
+		"annotations": [
+			"Azure Synapse"
+		],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=azr-devsql-03;initial catalog=CSA_PreProd;user id=safetyazrdwadmin",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJmYjc3NDRlZS1jZWNmLTQyYzUtYjYyNi0yZGE1ZWViNjUyYTIiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "dt-ir-02",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

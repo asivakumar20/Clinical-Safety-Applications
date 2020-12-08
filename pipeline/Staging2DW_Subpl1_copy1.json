@@ -1,0 +1,140 @@
+{
+	"name": "Staging2DW_Subpl1_copy1",
+	"properties": {
+		"activities": [
+			{
+				"name": "DW_CSA_TableList",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "@concat('SELECT TABLE_SCHEMA,TABLE_NAME FROM ',pipeline().globalParameters.DW_CSA_DBName,'.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = ''BASE TABLE'' AND TABLE_SCHEMA=''',pipeline().globalParameters.Staging_Schema,'''')",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "Dev_DataWarehouse_ds",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEachDW_CSATable",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "DW_CSA_TableList",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('DW_CSA_TableList').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Staging2DW_Copy",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "@{item().Table_Schema}.@{item().Table_Name}"
+								},
+								{
+									"name": "Destination",
+									"value": "@{replace(item().Table_Schema,pipeline().globalParameters.Staging_Schema,pipeline().globalParameters.Default_Schema)}.@{item().Table_Name}"
+								}
+							],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"preCopyScript": {
+										"value": "@{concat('Truncate Table ',replace(item().Table_Schema,pipeline().globalParameters.Staging_Schema,pipeline().globalParameters.Default_Schema),'.',item().Table_Name)}",
+										"type": "Expression"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Dev_DW_Table_Parmtr_ds",
+									"type": "DatasetReference",
+									"parameters": {
+										"dwcsa_Table_Name": {
+											"value": "@item().Table_Name",
+											"type": "Expression"
+										},
+										"dwcsa_Table_Schema": {
+											"value": "@item().Table_Schema",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Dev_DW_Table_Parmtr_ds",
+									"type": "DatasetReference",
+									"parameters": {
+										"dwcsa_Table_Name": {
+											"value": "@item().Table_Name",
+											"type": "Expression"
+										},
+										"dwcsa_Table_Schema": {
+											"value": "@replace(item().Table_Schema,pipeline().globalParameters.Staging_Schema,pipeline().globalParameters.Default_Schema)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "CSA_UAT_Pipelines/Ver.11182020"
+		},
+		"annotations": [],
+		"lastPublishTime": "2020-11-18T22:30:19Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

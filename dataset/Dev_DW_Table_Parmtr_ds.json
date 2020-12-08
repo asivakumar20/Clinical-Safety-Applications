@@ -1,0 +1,34 @@
+{
+	"name": "Dev_DW_Table_Parmtr_ds",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AZRDEVSQL03",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"dwcsa_Table_Name": {
+				"type": "string"
+			},
+			"dwcsa_Table_Schema": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "CSA_UAT_Datasets"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().dwcsa_Table_Schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().dwcsa_Table_Name",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

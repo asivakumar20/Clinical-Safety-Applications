@@ -1,0 +1,218 @@
+{
+	"name": "CSA2DWStaging_Mainpl1",
+	"properties": {
+		"activities": [
+			{
+				"name": "CSA_TableList",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@concat('SELECT TABLE_SCHEMA,TABLE_NAME FROM ',pipeline().globalParameters.CSA_TransDB_Name,'.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = ''BASE TABLE''')",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "CSA_PreProdDB_ds",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEachCSATable",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "CSA_TableList",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('CSA_TableList').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "CSA2DW_DataCopy",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "@{item().Table_Schema}.@{item().Table_Name}"
+								},
+								{
+									"name": "Destination",
+									"value": "@{replace(item().Table_Schema,pipeline().globalParameters.Default_Schema,pipeline().globalParameters.Staging_Schema)}.@{item().Table_Name}"
+								}
+							],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"preCopyScript": {
+										"value": "@{concat('Truncate Table ',replace(item().Table_Schema,pipeline().globalParameters.Default_Schema,pipeline().globalParameters.Staging_Schema),'.',item().Table_Name)}",
+										"type": "Expression"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "CSA_PreProdDB_Table_parmtr_ds",
+									"type": "DatasetReference",
+									"parameters": {
+										"csadb_Table_Name": {
+											"value": "@item().Table_Name",
+											"type": "Expression"
+										},
+										"csadb_Table_Schema": {
+											"value": "@item().Table_Schema",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Dev_DW_Table_Parmtr_ds",
+									"type": "DatasetReference",
+									"parameters": {
+										"dwcsa_Table_Name": {
+											"value": "@item().Table_Name",
+											"type": "Expression"
+										},
+										"dwcsa_Table_Schema": {
+											"value": "@replace(item().Table_Schema,pipeline().globalParameters.Default_Schema,pipeline().globalParameters.Staging_Schema)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Staging2DW_Copy",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Send Success Email",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Staging2DW_Subpl1",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Send Failed Email",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "ForEachCSATable",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-28.eastus2.logic.azure.com:443/workflows/a1d375bd030748dcbdf03c792f0936df/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=7tOxYL2UrcSIOVVNm6jcH3M9CEruyX5td8OdrqCK6HE",
+					"method": "POST",
+					"body": {
+						"value": "{\n\"Title\": \"Pipeline Run Failed...\",\n\"Message\": \"@{activity('CSA_TableList').error.message}\",\n\"Color\": \"Red\",\n\"DataFactoryName\": \"@{pipeline().DataFactory}\",\n\"PipelineName\": \"@{pipeline().Pipeline}\",\n\"PipelineRunId\": \"@{pipeline().RunId}\",\n\"PipelineTriggerId\": \"@{pipeline().TriggerId}\",\n\"PipelineTriggerName\": \"@{pipeline().TriggerName}\",\n\"PipelineTriggerTime\": \"@{pipeline().TriggerTime}\",\n\"PipelineTriggerType\": \"@{pipeline().TriggerType}\",\n\"Time\": \"@{utcnow()}\"\n}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Send Success Email",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "ForEachCSATable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-28.eastus2.logic.azure.com:443/workflows/a1d375bd030748dcbdf03c792f0936df/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=7tOxYL2UrcSIOVVNm6jcH3M9CEruyX5td8OdrqCK6HE",
+					"method": "POST",
+					"body": {
+						"value": "{\n\"Title\": \"Pipeline Run Finished!!\",\n\"Message\": \"Pipeline Finished Running Successfully!!\",\n\"Color\": \"Green\",\n\"DataFactoryName\": \"@{pipeline().DataFactory}\",\n\"PipelineName\": \"@{pipeline().Pipeline}\",\n\"PipelineRunId\": \"@{pipeline().RunId}\",\n\"PipelineTriggerId\": \"@{pipeline().TriggerId}\",\n\"PipelineTriggerName\": \"@{pipeline().TriggerName}\",\n\"PipelineTriggerTime\": \"@{pipeline().TriggerTime}\",\n\"PipelineTriggerType\": \"@{pipeline().TriggerType}\",\n\"Time\": \"@{utcnow()}\"\n}",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "CSA_UAT_Pipelines"
+		},
+		"annotations": [
+			"CSA"
+		],
+		"lastPublishTime": "2020-11-24T22:33:15Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

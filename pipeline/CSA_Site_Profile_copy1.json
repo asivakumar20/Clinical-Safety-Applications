@@ -1,0 +1,131 @@
+{
+	"name": "CSA_Site_Profile_copy1",
+	"properties": {
+		"activities": [
+			{
+				"name": "DW2csapreprodstorag",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "."
+					},
+					{
+						"name": "Destination",
+						"value": "csapreprodcontainer//@{concat('CSA_Site_Profile_v1_',utcnow(),'.csv')}"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT [UniqueSiteID],[Account Status_],[Account Name_],[NAPA Region_]\nFROM [CSA_PreProd].[dbo].[vw_CSASiteList]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".csv"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Dev_DataWarehouse_ds",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SiteProfileExcel_dls",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Send Email",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "DW2csapreprodstorag",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-29.eastus2.logic.azure.com:443/workflows/7106dada91a44873b56eef7f54acf004/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=KYTzs-uU7GHIUiRXvV5UHVfXN8EQU0YrMv9P9PEGzLY",
+					"method": "POST",
+					"body": {
+						"value": "{\n\"Title\": \"CSA Pipeline Run Finished\",\n\"Message\": \"CSA Pipeline Finished Running Successfully\",\n\"Color\": \"Green\",\n\"DataFactoryName\": \"@{pipeline().DataFactory}\",\n\"PipelineName\": \"@{pipeline().Pipeline}\",\n\"PipelineRunId\": \"@{pipeline().RunId}\",\n\"PipelineTriggerId\": \"@{pipeline().TriggerId}\",\n\"Time\": \"@{utcnow()}\"\n}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Send Failed Email",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "DW2csapreprodstorag",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-29.eastus2.logic.azure.com:443/workflows/7106dada91a44873b56eef7f54acf004/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=KYTzs-uU7GHIUiRXvV5UHVfXN8EQU0YrMv9P9PEGzLY",
+					"method": "POST",
+					"body": {
+						"value": "{\n\"Title\": \"Pipeline Run Failed\",\n\"Message\": \"@{activity('DW2csapreprodstorag').error.message}\",\n\"Color\": \"Red\",\n\"DataFactoryName\": \"@{pipeline().DataFactory}\",\n\"PipelineName\": \"@{pipeline().Pipeline}\",\n\"PipelineRunId\": \"@{pipeline().RunId}\",\n\"PipelineTriggerId\": \"@{pipeline().TriggerId}\",\n\"Time\": \"@{utcnow()}\"\n}",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "CSA_UAT_Pipelines/Ver.11182020"
+		},
+		"annotations": [],
+		"lastPublishTime": "2020-12-05T00:17:06Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

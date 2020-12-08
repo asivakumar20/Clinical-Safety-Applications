@@ -1,0 +1,34 @@
+{
+	"name": "CSA_PreProdDB_Table_parmtr_ds",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ClinicalSafetyAppPreProdDB",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"csadb_Table_Name": {
+				"type": "string"
+			},
+			"csadb_Table_Schema": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "CSA_UAT_Datasets"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().csadb_Table_Schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().csadb_Table_Name",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
