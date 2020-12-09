@@ -1,10 +1,6 @@
 {
 	"name": "SiteProfileExcel_dls",
 	"properties": {
-		"linkedServiceName": {
-			"referenceName": "ADLS_csapreprodstorage",
-			"type": "LinkedServiceReference"
-		},
 		"folder": {
 			"name": "CSA_UAT_Datasets"
 		},
