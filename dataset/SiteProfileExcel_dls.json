@@ -1,6 +1,10 @@
 {
 	"name": "SiteProfileExcel_dls",
 	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLS_csaprodstorage",
+			"type": "LinkedServiceReference"
+		},
 		"folder": {
 			"name": "CSA_UAT_Datasets"
 		},
@@ -13,7 +17,7 @@
 					"value": "@concat('CSA_Site_Profile_v1_',utcnow(),'.csv')",
 					"type": "Expression"
 				},
-				"fileSystem": "csapreprodcontainer"
+				"fileSystem": "csaprodcontainer"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
