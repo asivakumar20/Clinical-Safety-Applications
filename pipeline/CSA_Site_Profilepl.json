@@ -53,7 +53,7 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "Dev_DataWarehouse_ds",
+						"referenceName": "Prod_DataWarehouse_ds",
 						"type": "DatasetReference"
 					}
 				],
