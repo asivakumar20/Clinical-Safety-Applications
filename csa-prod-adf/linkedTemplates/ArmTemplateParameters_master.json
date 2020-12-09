@@ -1,0 +1,30 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "csa-prod-adf"
+		},
+		"ADLS_csaprodstorage_accountKey": {
+			"value": ""
+		},
+		"DTCPRODSQL01_connectionString": {
+			"value": ""
+		},
+		"DTCPRODSQL01_password": {
+			"value": ""
+		},
+		"ADLS_csaprodstorage_properties_typeProperties_url": {
+			"value": "https://csaprodstorage.dfs.core.windows.net"
+		},
+		"DTCPRODSQL01_properties_typeProperties_userName": {
+			"value": "nmsc\\asivakumar"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}

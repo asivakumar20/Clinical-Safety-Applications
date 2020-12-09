@@ -1,0 +1,315 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "csa-prod-adf"
+		},
+		"ADLS_csaprodstorage_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ADLS_csaprodstorage'"
+		},
+		"DTCPRODSQL01_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'DTCPRODSQL01'"
+		},
+		"DTCPRODSQL01_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'DTCPRODSQL01'"
+		},
+		"ADLS_csaprodstorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://csaprodstorage.dfs.core.windows.net"
+		},
+		"DTCPRODSQL01_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "nmsc\\asivakumar"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/CSA_Site_Profilepl')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "DW2CSAprodstorage",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "."
+							},
+							{
+								"name": "Destination",
+								"value": "csapreprodcontainer/Site Profile/@{concat('CSA_Site_Profile_v1_.csv')}"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": "SELECT  L.UID AS UniqueSiteID, L.Account_x0020_Status_ AS [Account Status_], L.Account_x0020_Name_ AS [Account Name_], L.NAPA_x0020_Region_ AS [NAPA Region_]\nFROM    SHAREPOINT_PROD.dbo.MNF_ACCOUNT AS L LEFT OUTER JOIN\nActive_Directory.dbo.AD_User_Object AS A01 ON A01.GivenName + ' ' + A01.LastName = L.RVP_x0020__x002d__x0020_Business_ AND A01.Enabled = '1' LEFT OUTER JOIN\nActive_Directory.dbo.AD_User_Object AS A02 ON A02.GivenName + ' ' + A02.LastName = L.Operations_x0020_Manager_ AND A02.Enabled = '1' LEFT OUTER JOIN\nActive_Directory.dbo.AD_User_Object AS A03 ON A03.GivenName + ' ' + A03.LastName = L.RVP_x0020__x002d__x0020_Clinical_ AND A03.Enabled = '1' LEFT OUTER JOIN\nActive_Directory.dbo.AD_User_Object AS A04 ON A04.GivenName + ' ' + A04.LastName = L.AVP_x0020__x002d__x0020_Clinical_ AND A04.Enabled = '1' LEFT OUTER JOIN\nActive_Directory.dbo.AD_User_Object AS A05 ON A05.GivenName + ' ' + A05.LastName = L.Clinical_x0020_Director_ AND A05.Enabled = '1' LEFT OUTER JOIN\nActive_Directory.dbo.AD_User_Object AS A06 ON A06.GivenName + ' ' + A06.LastName = L.Chief_ AND A06.Enabled = '1' LEFT OUTER JOIN\nActive_Directory.dbo.AD_User_Object AS A07 ON A07.GivenName + ' ' + A07.LastName = L.Vice_x0020_Chief_ AND A07.Enabled = '1' LEFT OUTER JOIN\nActive_Directory.dbo.AD_User_Object AS A08 ON A08.GivenName + ' ' + A08.LastName = L.Region_x0020_Chief_x0020_CRNA_ AND A08.Enabled = '1' LEFT OUTER JOIN\nActive_Directory.dbo.AD_User_Object AS A09 ON A09.GivenName + ' ' + A09.LastName = L.Chief_x0020_CRNA_ AND A09.Enabled = '1' LEFT OUTER JOIN\nActive_Directory.dbo.AD_User_Object AS A10 ON A10.GivenName + ' ' + A10.LastName = L.Assistant_x0020_Chief_x0020_CRNA_ AND A10.Enabled = '1' LEFT OUTER JOIN\nActive_Directory.dbo.AD_User_Object AS A11 ON A11.GivenName + ' ' + A11.LastName = L.Quality_x0020_Champion_ AND A11.Enabled = '1' LEFT OUTER JOIN\nActive_Directory.dbo.AD_User_Object AS A12 ON A12.GivenName + ' ' + A12.LastName = L.NAPA_x0020_Service_x0020_Champion AND A12.Enabled = '1' LEFT OUTER JOIN\npbi_gpms.dbo.biz_structure AS B ON L.UID = B.UniqueSiteId\nWHERE  (L.Account_x0020_Status_ IN ('Active', 'Inactive')) AND (L.UID IS NOT NULL)",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".csv"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "Prod_DataWarehouse_ds",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "SiteProfileExcel_dls",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"folder": {
+					"name": "CSA_UAT_Pipelines"
+				},
+				"annotations": [],
+				"lastPublishTime": "2020-12-05T00:15:00Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Prod_DataWarehouse_ds')]",
+				"[concat(variables('factoryId'), '/datasets/SiteProfileExcel_dls')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Prod_DataWarehouse_ds')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "DTCPRODSQL01",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "CSA_UAT_Datasets"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/DTCPRODSQL01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SiteProfileExcel_dls')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ADLS_csaprodstorage",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "CSA_UAT_Datasets"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@concat('CSA_Site_Profile_v1_',utcnow(),'.csv')",
+							"type": "Expression"
+						},
+						"fileSystem": "csaprodcontainer"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "UniqueSiteID",
+						"type": "String"
+					},
+					{
+						"name": "Account Status_",
+						"type": "String"
+					},
+					{
+						"name": "Account Name_",
+						"type": "String"
+					},
+					{
+						"name": "NAPA Region_",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ADLS_csaprodstorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADLS_csaprodstorage')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Prod Data Lake Storage",
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ADLS_csaprodstorage_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('ADLS_csaprodstorage_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DTCPRODSQL01')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Production Data Warehouse",
+				"annotations": [
+					"Synapse"
+				],
+				"type": "SqlServer",
+				"typeProperties": {
+					"connectionString": "[parameters('DTCPRODSQL01_connectionString')]",
+					"userName": "[parameters('DTCPRODSQL01_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('DTCPRODSQL01_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "dt-ir-prodsql-01",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/dt-ir-prodsql-01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CSA DW Refresh')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [
+					"CSA"
+				],
+				"runtimeState": "Stopped",
+				"pipelines": [],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-11-17T11:35:00",
+						"timeZone": "Eastern Standard Time",
+						"schedule": {
+							"minutes": [
+								0
+							],
+							"hours": [
+								9
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CSA Site Profile')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [
+					"CSA"
+				],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "CSA_Site_Profilepl",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-11-17T11:43:00",
+						"timeZone": "Eastern Standard Time",
+						"schedule": {
+							"minutes": [
+								0
+							],
+							"hours": [
+								8
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/CSA_Site_Profilepl')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dt-ir-prodsql-01')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		}
+	]
+}
