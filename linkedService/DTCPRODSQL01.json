@@ -1,0 +1,20 @@
+{
+	"name": "DTCPRODSQL01",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Production Data Warehouse",
+		"annotations": [
+			"Synapse"
+		],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=True;data source=DTC-PRODSQL-01;initial catalog=ADP_Prod",
+			"userName": "nmsc\\asivakumar",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJmM2IyOTE0MC03NjBiLTQzYWUtYmQyNi0xNWU4MWRmYTM5MjgiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "dt-ir-prodsql-01",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,6 @@
+{
+	"name": "dt-ir-prodsql-01",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}
