@@ -6,7 +6,7 @@
 			"type": "LinkedServiceReference"
 		},
 		"folder": {
-			"name": "CSA_UAT_Datasets"
+			"name": "CSA_Prod_Datasets"
 		},
 		"annotations": [],
 		"type": "DelimitedText",

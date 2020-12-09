@@ -66,7 +66,7 @@
 			}
 		],
 		"folder": {
-			"name": "CSA_UAT_Pipelines"
+			"name": "CSA_Prod_Pipelines"
 		},
 		"annotations": [],
 		"lastPublishTime": "2020-12-05T00:15:00Z"
