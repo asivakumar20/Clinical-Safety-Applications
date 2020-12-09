@@ -1,6 +1,10 @@
 {
-	"name": "Dev_DataWarehouse_ds",
+	"name": "Prod_DataWarehouse_ds",
 	"properties": {
+		"linkedServiceName": {
+			"referenceName": "DTCPRODSQL01",
+			"type": "LinkedServiceReference"
+		},
 		"folder": {
 			"name": "CSA_UAT_Datasets"
 		},
